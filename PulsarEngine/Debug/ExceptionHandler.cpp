@@ -28,27 +28,32 @@ void FatalError(const char* string) {
 }
 
 #pragma suppress_warnings on
-void LaunchSoftware() { //If dolphin, restarts game, else launches Riivo->OHBC->HBC->WiiMenu
-    static const u32 titleIds[3] = { 'RIIV','LULZ', 'HBC0' };
+void LaunchSoftware() { //If dolphin, restarts game, else launches Riivo->HBC->OHBC->WiiMenu
     s32 result = IO::OpenFix("/dev/dolphin", IOS::MODE_NONE);
     if(result >= 0) {
         IOS::Close(result);
         SystemManager::Shutdown();
         return;
     }
-    char tmdPath[IOS::ipcMaxPath];
-    for(int i = 0; i < 3; ++i) {
-        u32 launchCode = 0x00010001;
-        u32 titleId = titleIds[i];
-        snprintf(tmdPath, IOS::ipcMaxPath, "/title/%8d/%8d/content/title.tmd\0", launchCode, titleId);
-        IO::OpenFix(tmdPath, IOS::MODE_NONE);
-        if(result >= 0) {
-            ISFS::Close(result);
-            OS::__LaunchTitle(launchCode, titleId);
-            return;
-        }
+	result = IO::OpenFix("/title/00010001/52494956/content/title.tmd\0", IOS::MODE_NONE); //Riivo
+    if(result >= 0) {
+        ISFS::Close(result);
+         OS::__LaunchTitle(0x00010001, 0x52494956);
+        return;
     }
-    OS::__LaunchTitle(0x1, 0x2); // Launch Wii Menu if channel isn't found
+    result = IO::OpenFix("/title/00010001/4c554c5a/content/title.tmd\0", IOS::MODE_NONE); //OHBC
+    if(result >= 0) {
+        ISFS::Close(result);
+         OS::__LaunchTitle(0x00010001, 0x4c554c5a);
+        return;
+    }
+    result = IO::OpenFix("/title/00010001/48424330/content/title.tmd\0", IOS::MODE_NONE); // If HBC can't be found try OHBC
+    if(result >= 0) {
+        ISFS::Close(result);
+         OS::__LaunchTitle(0x00010001, 0x48424330);
+        return;
+    }
+     OS::__LaunchTitle(0x1, 0x2); // Launch Wii Menu if channel isn't found
 }
 #pragma suppress_warnings reset
 
