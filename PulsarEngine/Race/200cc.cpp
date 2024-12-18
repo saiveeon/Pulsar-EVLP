@@ -3,6 +3,7 @@
 #include <MarioKartWii/Effect/EffectMgr.hpp> 
 #include <MarioKartWii/UI/Section/SectionMgr.hpp>
 #include <Race/200ccParams.hpp>
+#include <MarioKartWii/Driver/DriverManager.hpp>
 #include <PulsarSystem.hpp>
 
 //Unoptimized code which is mostly a port of Stebler's version which itself comes from CTGP's, speed factor is in the LapSpeedModifier code
@@ -20,7 +21,7 @@ static void CannonExitSpeed() {
 kmCall(0x805850c8, CannonExitSpeed);
 
 void EnableBrakeDrifting(Input::ControllerHolder& controllerHolder) {
-    if(System::sInstance->IsContext(PULSAR_200)) {
+    if(System::sInstance->IsContext(PULSAR_MEGATC) && (!DriverMgr::isTT || (DriverMgr::isTT && System::sInstance->IsContext(PULSAR_200)))) {
         const ControllerType controllerType = controllerHolder.curController->GetType();
         const u16 inputs = controllerHolder.inputStates[0].buttonRaw;
         u16 inputsMask = 0x700;
@@ -60,7 +61,7 @@ kmCall(0x80521828, FixGhostBrakeDrifting);
 
 
 bool IsBrakeDrifting(const Kart::Status& status) {
-    if(System::sInstance->IsContext(PULSAR_200)) {
+    if(System::sInstance->IsContext(PULSAR_MEGATC) && (!DriverMgr::isTT || (DriverMgr::isTT && System::sInstance->IsContext(PULSAR_200)))) {
         u32 bitfield0 = status.bitfield0;
         const Input::ControllerHolder& controllerHolder = status.link->GetControllerHolder();
         if((bitfield0 & 0x40000) != 0 && (bitfield0 & 0x1F) == 0xF && (bitfield0 & 0x80100000) == 0
@@ -103,7 +104,7 @@ kmCall(0x806faff8, BrakeDriftingSoundWrapper);
 kmWrite32(0x80698f88, 0x60000000);
 static int BrakeEffectBikes(Effects::Player& effects) {
     const Kart::Player* kartPlayer = effects.kartPlayer;
-    if(System::sInstance->IsContext(PULSAR_200)) {
+    if(System::sInstance->IsContext(PULSAR_MEGATC) && (!DriverMgr::isTT || (DriverMgr::isTT && System::sInstance->IsContext(PULSAR_200)))) {
         if(IsBrakeDrifting(*kartPlayer->pointers.kartStatus)) effects.CreateAndUpdateEffectsByIdxVelocity(effects.bikeDriftEffects, 25, 26, 1);
         else effects.FollowFadeEffectsByIdxVelocity(effects.bikeDriftEffects, 25, 26, 1);
     }
@@ -114,7 +115,7 @@ kmCall(0x80698f8c, BrakeEffectBikes);
 kmWrite32(0x80698048, 0x60000000);
 static int BrakeEffectKarts(Effects::Player& effects) {
     Kart::Player* kartPlayer = effects.kartPlayer;
-    if(System::sInstance->IsContext(PULSAR_200)) {
+    if(System::sInstance->IsContext(PULSAR_MEGATC) && (!DriverMgr::isTT || (DriverMgr::isTT && System::sInstance->IsContext(PULSAR_200)))) {
         if(IsBrakeDrifting(*kartPlayer->pointers.kartStatus)) effects.CreateAndUpdateEffectsByIdxVelocity(effects.kartDriftEffects, 34, 36, 1);
         else effects.FollowFadeEffectsByIdxVelocity(effects.kartDriftEffects, 34, 36, 1);
     }
@@ -122,37 +123,37 @@ static int BrakeEffectKarts(Effects::Player& effects) {
 }
 kmCall(0x8069804c, BrakeEffectKarts);
 
-
-static void FastFallingBody(Kart::Status& status, Kart::Physics& physics) { //weird thing 0x96 padding byte used
-    if(System::sInstance->IsContext(PULSAR_200)) {
-        if((status.airtime >= 2) && (!status.bool_0x96 || (status.airtime > 19))) {
-            Input::ControllerHolder& controllerHolder = status.link->GetControllerHolder();
-            float input = controllerHolder.inputStates[0].stick.z <= 0.0f ? 0.0f :
-                (controllerHolder.inputStates[0].stick.z + controllerHolder.inputStates[0].stick.z);
-            physics.gravity -= input * fastFallingBodyGravity;
-        }
-    }
-    status.UpdateFromInput();
-}
-kmCall(0x805967a4, FastFallingBody);
-
-
-kmWrite32(0x8059739c, 0x38A10014); //addi r5, sp, 0x14 to align with the Vec3 on the stack
-static Kart::WheelPhysicsHolder& FastFallingWheels(Kart::Sub& sub, u8 wheelIdx, Vec3& gravityVector) { //weird thing 0x96 status
-    float gravity = -1.3f;
-    if(System::sInstance->IsContext(PULSAR_200)) {
-        Kart::Status* status = sub.kartStatus;
-        if(status->airtime == 0) status->bool_0x96 = ((status->bitfield0 & 0x80) != 0) ? true : false;
-        else if((status->airtime >= 2) && (!status->bool_0x96 || (status->airtime > 19))) {
-            Input::ControllerHolder& controllerHolder = sub.GetControllerHolder();
-            float input = controllerHolder.inputStates[0].stick.z <= 0.0f ? 0.0f
-                : (controllerHolder.inputStates[0].stick.z + controllerHolder.inputStates[0].stick.z);
-            gravity *= (input * fastFallingWheelGravity + 1.0f);
-        }
-    }
-    gravityVector.y = gravity;
-    return sub.GetWheelPhysicsHolder(wheelIdx);
-};
-kmCall(0x805973a4, FastFallingWheels);
+// not fond of fast falling
+//static void FastFallingBody(Kart::Status& status, Kart::Physics& physics) { //weird thing 0x96 padding byte used
+//    if(System::sInstance->IsContext(PULSAR_200)) {
+//        if((status.airtime >= 2) && (!status.bool_0x96 || (status.airtime > 19))) {
+//            Input::ControllerHolder& controllerHolder = status.link->GetControllerHolder();
+//            float input = controllerHolder.inputStates[0].stick.z <= 0.0f ? 0.0f :
+//                (controllerHolder.inputStates[0].stick.z + controllerHolder.inputStates[0].stick.z);
+//            physics.gravity -= input * fastFallingBodyGravity;
+//        }
+//    }
+//    status.UpdateFromInput();
+//}
+//kmCall(0x805967a4, FastFallingBody);
+//
+//
+//kmWrite32(0x8059739c, 0x38A10014); //addi r5, sp, 0x14 to align with the Vec3 on the stack
+//static Kart::WheelPhysicsHolder& FastFallingWheels(Kart::Sub& sub, u8 wheelIdx, Vec3& gravityVector) { //weird thing 0x96 status
+//    float gravity = -1.3f;
+//    if(System::sInstance->IsContext(PULSAR_200)) {
+//        Kart::Status* status = sub.kartStatus;
+//        if(status->airtime == 0) status->bool_0x96 = ((status->bitfield0 & 0x80) != 0) ? true : false;
+//        else if((status->airtime >= 2) && (!status->bool_0x96 || (status->airtime > 19))) {
+//            Input::ControllerHolder& controllerHolder = sub.GetControllerHolder();
+//            float input = controllerHolder.inputStates[0].stick.z <= 0.0f ? 0.0f
+//                : (controllerHolder.inputStates[0].stick.z + controllerHolder.inputStates[0].stick.z);
+//            gravity *= (input * fastFallingWheelGravity + 1.0f);
+//        }
+//    }
+//    gravityVector.y = gravity;
+//    return sub.GetWheelPhysicsHolder(wheelIdx);
+//};
+//kmCall(0x805973a4, FastFallingWheels);
 }//namespace Race
 }//namespace Pulsar

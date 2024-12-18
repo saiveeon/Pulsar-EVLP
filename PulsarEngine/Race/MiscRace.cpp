@@ -1,4 +1,5 @@
 #include <kamek.hpp>
+#include <MarioKartWii/Archive/ArchiveMgr.hpp>
 #include <MarioKartWii/RKNet/RKNetController.hpp>
 #include <MarioKartWii/UI/Ctrl/CtrlRace/CtrlRaceBalloon.hpp>
 #include <MarioKartWii/UI/Ctrl/CtrlRace/CtrlRaceResult.hpp>
@@ -8,6 +9,79 @@
 
 namespace Pulsar {
 namespace Race {
+	
+// change transmission, code from brawlbox and thegamingbram
+static void *GetCustomKartParam(ArchiveMgr *archive, ArchiveSource type, const char *name, u32 *length){
+	const u8 ekwdrift = Settings::Mgr::Get().GetUserSettingValue(Settings::SETTINGSTYPE_EKW, SETTINGEKW_DRIFTS);
+	const u8 ekwstat = Settings::Mgr::Get().GetUserSettingValue(Settings::SETTINGSTYPE_EKW, SETTINGEKW_STATMOD);
+	if(System::sInstance->IsContext(PULSAR_MEGATC)) {
+		if (ekwdrift == EKWSETTING_DRIFTS_INSIDE){ 
+			name = "kartParamVI.bin";
+		}
+		if (ekwdrift == EKWSETTING_DRIFTS_OUTSIDE){ 
+			name = "kartParamVO.bin";
+		}
+		if (ekwdrift == EKWSETTING_DRIFTS_BIKEIN){ 
+			name = "kartParamVB.bin";
+		}
+		if (ekwdrift == EKWSETTING_DRIFTS_KARTIN){ 
+			name = "kartParamVK.bin";
+		}
+		if (ekwdrift == EKWSETTING_DRIFTS_INVERT){ 
+			name = "kartParamVX.bin";
+		}
+		if (ekwstat == EKWSETTING_STATMOD_ENABLED) {
+			if (ekwdrift == EKWSETTING_DRIFTS_DEFAULT){ 
+				name = "kartParamA.bin";
+			}
+			if (ekwdrift == EKWSETTING_DRIFTS_INSIDE){ 
+				name = "kartParamI.bin";
+			}
+			if (ekwdrift == EKWSETTING_DRIFTS_OUTSIDE){ 
+				name = "kartParamO.bin";
+			}
+			if (ekwdrift == EKWSETTING_DRIFTS_BIKEIN){ 
+				name = "kartParamB.bin";
+			}
+			if (ekwdrift == EKWSETTING_DRIFTS_KARTIN){ 
+				name = "kartParamK.bin";
+			}
+			if (ekwdrift == EKWSETTING_DRIFTS_INVERT){ 
+				name = "kartParamX.bin";
+			}
+		}
+	}
+	return archive->GetFile(type, name, length);
+}
+kmCall(0x80591a30, GetCustomKartParam);
+
+static void *GetCustomItemSlot(ArchiveMgr *archive, ArchiveSource type, const char *name, u32 *length){
+    const u8 ekwitem = Settings::Mgr::Get().GetUserSettingValue(Settings::SETTINGSTYPE_EKW, SETTINGEKW_CPUITEM);
+    if (ekwitem == EKWSETTING_CPUITEM_BRUTAL){
+		name = "ItemSlotZ.bin";
+    }
+    return archive->GetFile(type, name, length);
+}
+kmCall(0x807bb128, GetCustomItemSlot);
+kmCall(0x807bb030, GetCustomItemSlot);
+kmCall(0x807bb200, GetCustomItemSlot);
+kmCall(0x807bb53c, GetCustomItemSlot);
+kmCall(0x807bbb58, GetCustomItemSlot);
+
+void *GetCustomKartAIParam(ArchiveMgr *archive, ArchiveSource type, const char *name, u32 *length){
+    const u8 ekwicp = Settings::Mgr::Get().GetUserSettingValue(Settings::SETTINGSTYPE_EKW, SETTINGEKW_IMPOSSIBLECPU);
+    if (ekwicp == EKWSETTING_IMPOSSIBLECPU1){
+		name = "kartAISpdParam1.bin";
+    }
+	if (ekwicp == EKWSETTING_IMPOSSIBLECPU2){
+		name = "kartAISpdParam2.bin";
+    }
+	if (ekwicp == EKWSETTING_IMPOSSIBLECPU3){
+		name = "kartAISpdParam3.bin";
+    }
+    return archive->GetFile(type, name, length);
+}
+kmCall(0x8073ae9c, GetCustomKartAIParam);
 
 static void NonGhostPlayerCount(RacedataScenario& scenario, u8* playerCount, u8* screenCount, u8* localPlayerCount) {
     scenario.ComputePlayerCounts(playerCount, screenCount, localPlayerCount);
@@ -85,11 +159,9 @@ static void BattleGlitchEnable() {
 }
 RaceFrameHook BattleGlitch(BattleGlitchEnable);
 
-kmWrite32(0x8085C914, 0x38000000); //times at the end of races in VS
-static void DisplayTimesInsteadOfNames(CtrlRaceResult& result, u8 id) {
-    result.FillFinishTime(id);
-}
-kmCall(0x8085d460, DisplayTimesInsteadOfNames); //for WWs
+//wi-fi time limit expansion
+kmWrite32(0x8053F3B8,0x3C60005C);
+kmWrite32(0x8053EDA8,0x38838D7E);
 
 //don't hide position tracker (MrBean35000vr)
 kmWrite32(0x807F4DB8, 0x38000001);
@@ -126,14 +198,12 @@ kmWrite24(0x808A9C16, 'PUL'); //item_window_new -> item_window_PUL
 
 const char* ChangeItemWindowPane(ItemId id, u32 itemCount) {
     const bool feather = System::sInstance->IsContext(PULSAR_FEATHER);
-    const bool megaTC = System::sInstance->IsContext(PULSAR_MEGATC);
     const char* paneName;
     if (id == BLOOPER && feather) {
         if (itemCount == 2) paneName = "feather_2";
         else if (itemCount == 3) paneName = "feather_3";
         else paneName = "feather";
     }
-    else if (id == THUNDER_CLOUD && megaTC) paneName = "megaTC";
     else paneName = GetItemIconPaneName(id, itemCount);
     return paneName;
 }
