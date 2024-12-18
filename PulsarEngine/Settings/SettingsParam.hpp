@@ -11,7 +11,7 @@ namespace Settings {
 class Params {
 public:
     static const int pulsarPageCount = 5;
-    static const int userPageCount = 0;
+    static const int userPageCount = 1;
     static const int pageCount = pulsarPageCount + userPageCount;
 
     static const int maxRadioCount = 6; //per page, due to space
@@ -36,7 +36,7 @@ enum Type {
 
 //If you want to add settings to your packs, they go in this enum, and GetUserSettingValue should be used to obtain the value of a given setting
 enum UserType {
-
+	SETTINGSTYPE_EKW,
 };
 
 }//namespace Settings
@@ -61,9 +61,9 @@ enum RaceSettings {
 };
 
 enum HostSettings {
-    SETTINGHOST_RADIO_HOSTWINS = 0,
-    SETTINGHOST_RADIO_CC = 1,
-    SETTINGHOST_ALLOW_MIIHEADS = 2,
+    SETTINGHOST_RADIO_CC = 0,
+    SETTINGHOST_ALLOW_MIIHEADS = 1,
+	SETTINGHOST_RADIO_HOSTWINS = 2,
 
     SETTINGHOST_SCROLL_GP_RACES = 0 + 6
 };
@@ -82,6 +82,14 @@ enum KOSettings {
     SETTINGKO_KOPERRACE = 0 + 6,
     SETTINGKO_RACESPERKO = 1 + 6,
 
+};
+
+enum EKWSettings {
+    SETTINGEKW_STATMOD,
+	SETTINGEKW_IMPOSSIBLECPU,
+	SETTINGEKW_CPUITEM,
+	
+	SETTINGEKW_DRIFTS = 0 + 6
 };
 
 //MENU SETTINGS
@@ -131,9 +139,8 @@ enum RaceSettingBLUES {
 };
 
 enum RaceSettingSOM {
-    RACESETTING_SOM_LEFT = 0x0,
-    RACESETTING_SOM_RIGHT = 0x1,
-    RACESETTING_SOM_DISABLED = 0x2
+	RACESETTING_SOM_DISABLED = 0x0,
+    RACESETTING_SOM_ENABLE = 0x1
 };
 
 enum RaceSettingSOMDigits {
@@ -144,11 +151,6 @@ enum RaceSettingSOMDigits {
 };
 
 //HOST SETTINGS
-enum HostSettingHAW {
-    HOSTSETTING_HOSTWINS_DISABLED,
-    HOSTSETTING_HOSTWINS_ENABLED
-};
-
 enum HostSettingHostCC {
     HOSTSETTING_CC_NORMAL,
     HOSTSETTING_CC_150,
@@ -164,10 +166,10 @@ enum HostSettingMiiHeads {
 enum HostSettingGPRACES {
     HOSTSETTING_GP_RACES_4,
     HOSTSETTING_GP_RACES_8,
-    HOSTSETTING_GP_RACES_12,
-    HOSTSETTING_GP_RACES_24,
+    HOSTSETTING_GP_RACES_16,
     HOSTSETTING_GP_RACES_32,
     HOSTSETTING_GP_RACES_64,
+    HOSTSETTING_GP_RACES_250,
     HOSTSETTING_GP_RACES_2,
     //space for a 7th setting is available
 };
@@ -218,6 +220,34 @@ enum KOSettingRacesPerKO {
     KOSETTING_RACESPERKO_4
 };
 //KOSETTINGS
+
+//EKWSETTINGS
+
+enum EKWSettingStatmod {
+    EKWSETTING_STATMOD_DISABLED,
+	EKWSETTING_STATMOD_ENABLED
+};
+
+enum EKWSettingImpossibleCPU {
+    EKWSETTING_IMPOSSIBLECPU_DISABLED,
+	EKWSETTING_IMPOSSIBLECPU1,
+    EKWSETTING_IMPOSSIBLECPU2,
+	EKWSETTING_IMPOSSIBLECPU3
+};
+
+enum EKWSettingCPUItem {
+    EKWSETTING_CPUITEM_DISABLED,
+	EKWSETTING_CPUITEM_BRUTAL
+};
+
+enum EKWSettingDrifts {
+    EKWSETTING_DRIFTS_DEFAULT,
+	EKWSETTING_DRIFTS_INVERT,
+    EKWSETTING_DRIFTS_INSIDE,
+	EKWSETTING_DRIFTS_OUTSIDE,
+	EKWSETTING_DRIFTS_BIKEIN,
+	EKWSETTING_DRIFTS_KARTIN
+};
 
 }//namespace Pulsar
 
