@@ -1,3 +1,6 @@
+# Eevee's Legacy Pack
+Uses a modified version of Pulsar. I released the source code because I figured someone might find something useful in here. Feel free to take what you would like. If I have redistributed your code against your wishes, please reach out to me. (If this refers to code already in Pulsar v2.0.1, sorry, the MIT license ensures I can use it. Don't try anything.)
+
 # Pulsar
 
 Pulsar is a Mario Kart Wii Kamek-Based engine to create CT distributions. It comes with its own [software](../main/PulsarPackCreator/Executable) to aid in building custom distributions, and multiple quality of life features:
