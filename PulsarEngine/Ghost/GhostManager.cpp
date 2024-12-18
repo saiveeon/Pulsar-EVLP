@@ -2,6 +2,12 @@
 #include <Settings/Settings.hpp>
 #include <IO/IO.hpp>
 #include <SlotExpansion/CupsConfig.hpp>
+#include <MarioKartWii/Archive/ArchiveMgr.hpp>
+#include <MarioKartWii/RKNet/RKNetController.hpp>
+#include <MarioKartWii/UI/Ctrl/CtrlRace/CtrlRaceBalloon.hpp>
+#include <MarioKartWii/UI/Ctrl/CtrlRace/CtrlRaceResult.hpp>
+#include <MarioKartWii/GlobalFunctions.hpp>
+#include <MarioKartWii/Driver/DriverManager.hpp>
 
 namespace Pulsar {
 namespace Ghosts {
@@ -215,6 +221,13 @@ void Mgr::LoadAllGhosts(u32 maxGhosts, bool isGhostRace) {
 
 bool Mgr::SaveGhost(const RKSYS::LicenseLdbEntry& entry, u32 ldbPosition, bool isFlap) {
     //Compare against leaderboard and save
+	const u8 ekwdrift = Settings::Mgr::Get().GetUserSettingValue(Settings::SETTINGSTYPE_EKW, SETTINGEKW_DRIFTS);
+	const u8 ekwstat = Settings::Mgr::Get().GetUserSettingValue(Settings::SETTINGSTYPE_EKW, SETTINGEKW_STATMOD);
+	if (ekwdrift != EKWSETTING_DRIFTS_DEFAULT || ekwstat != EKWSETTING_STATMOD_DISABLED){ 
+		areGhostsSaving = false;
+	} else {
+		areGhostsSaving = true;
+	}
     if(!areGhostsSaving) return false;
     if(isFlap) this->leaderboard.Update(ENTRY_FLAP, this->entry, -1);
     GhostData data;
